@@ -158,19 +158,45 @@ app.post('/parse', function(req,res) {
     return;
   }
 
-  if (!req.body.filter_names) {
+  if (!req.body.filters) {
     res.status(400);
     res.send({'ERROR':'Must provide attribute \'filters\' in the request body!'});
     return;
   }
 
-  var filterMap = JSON.parse(req.body.filter_names);
-
   var parsedSentence = req.body.sentence;
+  console.log('--------------------------------------------');
+  console.log('Parsing Sentence:');
+  console.log(`[${parsedSentence}]\n`);
 
-  for (var filterIndex in filterMap) {
-    parsedSentence = filters[filterMap[filterIndex]](parsedSentence);
-  }
+  //  filtersObj = [
+  //    {
+  //      filter_name: 'filterName',
+  //      word_map: 'file-name'
+  //    },
+  //    ...
+  //  ]
+
+  var filterOptions = JSON.parse(req.body.filters);
+
+  filterOptions.forEach(filterOption => {
+
+    var filterName = filterOption['filter_name'];
+    var wordMap = filterOption['word_map'];
+
+    console.log(`Applying filter [${filterName}] with word map file [${wordMap}]`);
+
+    var newParsedSentence = filters[filterName](parsedSentence,wordMap);
+
+    if (newParsedSentence) {
+      parsedSentence = newParsedSentence;
+    }
+
+    console.log(`Sentence after filter [${parsedSentence}]\n`);
+
+  });
+
+  console.log(`Final Parsed Sentence [${parsedSentence}]`);
 
   res.send({'parsedSentence':parsedSentence});
 });

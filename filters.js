@@ -7,47 +7,65 @@ module.exports = {
   
   // Find and return all words that start with '@'. 
   findReferences: function(sentence) {
-
-    var references = sentence.split(' ')
-    .filter(function(word) {
-      return word.startsWith('@');
-    })
-    .map(function(word) {
-      return removeCamelCase(word.replace('@',''));
-    });
-
-    console.log(`Found references: [${references.join(' ')}]`);
-    return references.join(' ');
+    return sentence.split(' ')
+      .filter(function(word) {
+        return word.startsWith('@');
+      })
+      .map(function(word) {
+        return removeCamelCase(word.replace('@',''));
+      })
+      .join(' ');
   },
 
   // Find and return all words that begin with a capital letter
   findCapitalizedWords: function(sentence) {
-
-    var capitalWords = sentence.split(' ')
-    .filter(function(word) {
-      return isCapitalized(word);
-    });
-
-    console.log(`Capital Words: [${capitalWords.join(' ')}]`);
-    return capitalWords.join(' ');
+    return sentence.split(' ')
+      .filter(function(word) {
+        return isCapitalized(word);
+      })
+      .join(' ');
   },
 
-  // Remove any words that are in the "common-words" map file
-  removeCommonWords: function(sentence) {
-    var wordMap = readJsonFile('./common-words.json');
+  // Remove any words that are in the provided map file
+  removeWordsFromMap: function(sentence,wordMapFile) {
+    var wordMap = readJsonFile(`./${wordMapFile}.json`);
 
-    var uncommonWords = sentence.split(' ')
-    .filter(function(word) {
-      return !wordMap.hasOwnProperty(word.toLowerCase());
-    });
+    return sentence.split(' ')
+      .filter(function(word) {
+        return !wordMap.hasOwnProperty(word.toLowerCase());
+      })
+      .join(' ');
+  },
 
-    console.log(`Uncommon Words: [${uncommonWords.join(' ')}]`);
-    return uncommonWords.join(' ');
+  // Return any matches using the provided map file
+  matchWordsInMap: function(sentence,wordMapFile) {
+    var wordMap = readJsonFile(`./${wordMapFile}.json`);
+
+    return sentence.split(' ')
+      .filter(function(word) {
+        return wordMap.hasOwnProperty(word.toLowerCase());
+      })
+      .join(' ');
+  },
+
+  // Remove punctuation characters
+  removePunctuation: function(sentence) {
+    return sentence.replace(/[\.\,\?\!]/g,'');
+  },
+
+  // Remove any character that is not alphanumeric from the sentence
+  removeNonAlphanumerics: function(sentence) {
+    return sentence.replace(/[^a-zA-Z\d\s\@\#]/g,'');
+  },
+
+  // Replace any space, newline, tab with just a single space character
+  normalizeSpaces: function(sentence) {
+    return sentence.replace(/\s+/g,' ');
   }
 
 };
 
-// Helper Functions ====================================
+// Helper Functions ===========================================================
 
 // Read a JSON file into an object
 var readJsonFile = function(filename) {
@@ -75,6 +93,7 @@ var removeCamelCase = function(word) {
 
 // Return true if the first letter in the word is capitalized
 var isCapitalized = function(word) {
+  if (!word) return false;
   var firstLetter = word.split('')[0];
   return (firstLetter.toUpperCase() == firstLetter);
 }
